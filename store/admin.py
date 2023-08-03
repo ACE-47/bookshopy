@@ -19,7 +19,7 @@ class InventoryFilter(admin.SimpleListFilter):
             ('<10','LOW'),
         ]
     
-    def queryset(self, request: Any, queryset: QuerySet()) :
+    def queryset(self, request: Any, queryset: QuerySet) :
         if self.value() == '<10':
             return queryset.filter(inventory__lt = 10)
         
@@ -32,15 +32,34 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
+    actions = ['clear_inventory']
     inlines = [ProductImageInline]
     search_fields =['title']
     autocomplete_fields = ['collection']
     prepopulated_fields = {'slug':['title']}
-    list_display = ['title', 'unit_price', 'collection', 'inventory']
+    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory']
     list_filter = ['collection','last_update', InventoryFilter]
 
     list_per_page = 20
 
+    @admin.display(ordering='inventory')
+    def inventory_status(self, product:models.Product):
+        if product.inventory < 10:
+            return 'Low'
+        return 'Ok'
+    
+    @admin.action(description='Clear Inventory')
+    def clear_inventory(self, request,queryset:QuerySet):
+        updated_count = queryset.update(inventory = 0)
+        self.message_user(
+            request,
+            f'{updated_count} was seccessfuly updated '
+        )
+
+    class Media:
+        css = {
+            'all':['store/styles.css']
+        }
 
 @admin.register(models.Collection)
 class CollectionAdmin(admin.ModelAdmin):
