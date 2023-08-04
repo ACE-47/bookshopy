@@ -88,7 +88,8 @@ class CustomerAdmin(admin.ModelAdmin):
 
     @admin.display(ordering='orders')
     def orders(self, customer):
-        url = (reverse('admin:store_order_changelist') + '?'
+        url = (reverse('admin:store_order_changelist') + 
+               '?'
                 + urlencode({'customer_id':str(customer.id)}))
         return format_html('<a href={}>{}</a>',url, customer.orders)
     
@@ -106,6 +107,7 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(models.Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
+    autocomplete_fields = ['customer']
     list_display = ['id', 'customer','placed_at', 'payment_status',]
     ordering = ['-placed_at']
     list_editable = ['payment_status']
