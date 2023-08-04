@@ -67,7 +67,7 @@ class ProductImage(models.Model):
 # file = models.FileField(upload_to='store/images', validators=[FileExtensionValidator(allow_extensions =['pdf])])
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='store/images', validators=[validate_file_size])
+    image = models.ImageField(upload_to='store/images', )
 
 
 class Customer(models.Model):
