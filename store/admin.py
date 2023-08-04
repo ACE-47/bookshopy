@@ -67,13 +67,46 @@ class CollectionAdmin(admin.ModelAdmin):
     list_display = ['title','products_count']
 
     @admin.display(ordering='products_count')
-    def products_count(self, collection):
-        url = (reverse('admin:store_product_changelist') + '?' + urlencode({'collection_id':str(collection.id)}))
+    def products_count(self, collection:models.Collection):
+        url = (reverse('admin:store_product_changelist') + '?' 
+               + urlencode({'collection_id':str(collection.id)}))
         return format_html('<a href={}>{}<a>',url,collection.products_count)
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(products_count = Count('products'))
     
-
+# 
+@admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
+    list_display = ['first_name', 'last_name','orders']
+    list_per_page = 20
+    list_select_related = ['user']
+    ordering = ['user__first_name', 'user__last_name']
+    search_fields = ['user__first_name__istartswith', 'user__last_name__istartswith']
+
+    autocomplete_fields = ['user']
+
+    @admin.display(ordering='orders')
+    def orders(self, customer):
+        url = (reverse('admin:store_order_changelist') + '?'
+                + urlencode({'customer_id':str(customer.id)}))
+        return format_html('<a href={}>{}</a>',url, customer.orders)
     
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(orders = Count('order'))
+    
+
+class OrderItemInline(admin.TabularInline):
+    model =  models.OrderItem
+    autocomplete_fields = ['product']
+    min_num = 1
+    max_num = 10
+    extra = 0
+
+@admin.register(models.Order)
+class OrderAdmin(admin.ModelAdmin):
+    inlines = [OrderItemInline]
+    list_display = ['id', 'customer','placed_at', 'payment_status',]
+    ordering = ['-placed_at']
+    list_editable = ['payment_status']
+    list_per_page = 20
