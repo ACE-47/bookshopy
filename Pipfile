@@ -7,6 +7,8 @@ name = "pypi"
 django = "*"
 pillow = "*"
 mysqlclient = "*"
+djangorestframework = "*"
+django-filter = "*"
 
 [dev-packages]
 
