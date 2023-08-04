@@ -76,7 +76,7 @@ class Customer(models.Model):
     birth_date = models.DateField(null=True)
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.user.first_name} {self.user.last_name}'
     
     @admin.display(ordering=['user__first_name'])
     def first_name(self):
