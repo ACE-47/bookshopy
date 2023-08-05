@@ -92,3 +92,22 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CartItem
         fields = ['quantity']
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(read_only = True)
+    class Meta:
+        model =models.Customer
+        fields = ['id', 'user_id', 'phone', 'birth_date']
+        
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer()
+    class Meta:
+        model = models.OrderItem
+        fields = ['product', 'quantity', 'unit_price']
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many = True)
+    class Meta:
+        model = models.Order
+        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items']

@@ -7,7 +7,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyModelMixin
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order
 from . import serializers
 from .filters import ProductFilter
 from .paginations import ProductPagination
@@ -79,5 +79,14 @@ class CartItemViewSet(ModelViewSet):
     
     def get_queryset(self):
         return CartItem.objects.filter(cart_id = self.kwargs['cart_pk']).select_related('product')
+
+class CustomerViewSet(ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = serializers.CustomerSerializer
+
+
+class OrderViewSet(ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = serializers.OrderSerializer
     
     
