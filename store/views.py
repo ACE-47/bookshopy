@@ -2,11 +2,12 @@ from django.shortcuts import render, get_object_or_404
 from django.db.models import Count
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyModelMixin
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Product, ProductImage, OrderItem, Collection
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem
 from . import serializers
 from .filters import ProductFilter
 from .paginations import ProductPagination
@@ -53,3 +54,11 @@ class ProductImageViewSet(ModelViewSet):
     
     def get_queryset(self):
         return ProductImage.objects.filter(product_id = self.kwargs['product_pk'])
+    
+
+
+class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
+    queryset = Cart.objects.all()
+    serializer_class = serializers.CartSerializer
+
+# class CartItemViewSet(ModelViewSet):
