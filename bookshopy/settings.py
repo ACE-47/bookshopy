@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'debug_toolbar',
     'djoser',
+    'debug_toolbar',
     'store',
+    'core',
     
 ]
 
@@ -132,6 +133,12 @@ SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
 #    change the access to the default one (delete the line )
    "ACCESS_TOKEN_LIFETIME": timedelta(days=7), 
+}
+
+DJOSER = {
+     'SERIALIZERS': {
+         'user_create': 'core.serializers.UserCreateSerializer',
+     },
 }
 
 # Internationalization
