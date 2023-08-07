@@ -100,6 +100,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         model =models.Customer
         fields = ['id', 'user_id', 'phone', 'birth_date']
         
+        
 class OrderItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()
     class Meta:
