@@ -7,12 +7,13 @@ from django.core.validators import MinValueValidator
 from .validatiors import validate_file_size 
 # Create your models here.
 
-# class Publisher(models.Model):
-#     name = models.CharField(max_length=255)
-#     description = models.TextField(null=True, blank=True)
+class Publisher(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+  
 
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return self.name
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
@@ -28,16 +29,16 @@ class Promotion(models.Model):
     description = models.CharField(max_length=255)
     discount = models.FloatField()
 
-# class Author(models.Model):
-#     name = models.CharField(max_length=255)
-#     about = models.TextField(null=True, blank=True)
-#     birth_date = models.DateField(null=True, blank=True)
-#     author_image = models.ImageField() # set default image 
+class Author(models.Model):
+    name = models.CharField(max_length=255)
+    about = models.TextField(null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    author_image = models.ImageField(blank=True, null=True) # set default image 
 
 class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField()
-    description = models.TextField()
+    descriptions = models.TextField()
     # change decimail settings based on DIQ
     unit_price = models.DecimalField(
         max_digits=6,
@@ -45,14 +46,14 @@ class Product(models.Model):
         validators= [MinValueValidator(1)]
         ) #9999.99  
     
-    # pages = models.IntegerField(null=True, blank=True)
+    pages = models.IntegerField(null=True, blank=True)
     
     inventory = models.IntegerField(validators= [MinValueValidator(0)], default=1)
     last_update = models.DateTimeField(auto_now=True)
-    # publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products')
+    publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
     promotions = models.ManyToManyField(Promotion,blank=True)
-    # auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products')
+    auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
 
     def __str__(self):
         return self.title
