@@ -18,6 +18,11 @@ from . import models
 #         return format_html(f'<img src="{instanc.image.url}" class="thumbnail"/>')
     
 
+@admin.register(models.Promotion)
+class PromotionAdmin(admin.ModelAdmin):
+    list_display = ['title','discount', 'description']
+
+
 
 @admin.register(models.Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -93,7 +98,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields =['title']
     autocomplete_fields = ['collection']
     prepopulated_fields = {'slug':['title']}
-    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory', 'publisher']
+    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory',]
     list_filter = ['collection','last_update', InventoryFilter]
 
     list_per_page = 20

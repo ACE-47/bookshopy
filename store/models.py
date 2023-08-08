@@ -29,8 +29,13 @@ class Collection(models.Model):
         ordering = ['title']
 
 class Promotion(models.Model):
+    title = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
-    discount = models.FloatField()
+    discount = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+
+    def __str__(self):
+        return self.title
+    
 
 class Author(models.Model):
     name = models.CharField(max_length=255)

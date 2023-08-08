@@ -40,11 +40,17 @@ class PublisherSerializer(serializers.ModelSerializer):
 class ProdcutSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many = True, read_only = True)
     publisher = PublisherSerializer( read_only = True)
-    
+    promotions = serializers.CharField()
+
     class Meta:
         model = models.Product
-        fields = ['id','title','descriptions','slug','inventory','unit_price','collection','publisher','auther','images']
+        fields = ['id','title','descriptions','slug', 'promotions', 'inventory','unit_price','collection','publisher','auther','images']
 
+    def get_promotions(self, prmotion:models.Promotion):
+        if prmotion.discount !=0:
+            print(prmotion.discount)
+            return prmotion.discount
+        
     
 
 
