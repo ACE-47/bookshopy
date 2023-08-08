@@ -35,6 +35,11 @@ class Author(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     author_image = models.ImageField(blank=True, null=True) # set default image 
 
+    def __str__(self):
+        return self.name
+    
+
+
 class Product(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField()

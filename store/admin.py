@@ -9,6 +9,9 @@ from django.urls import reverse
 from . import models
 
 # Register your models here.
+@admin.register(models.Author)
+class AuthorAdmin(admin.ModelAdmin):
+    list_display = ['name', 'about', 'birth_date',]
 
 class InventoryFilter(admin.SimpleListFilter):
     title = 'Inventory'
