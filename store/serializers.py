@@ -4,6 +4,13 @@ from rest_framework import serializers
 from . import models
 
 
+class authorSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = models.Author
+        fields = ['id' ,'name', 'about', 'birth_date', 'author_image']
+       
+
+
 class CollectionSerializer(serializers.ModelSerializer):
     products_count = serializers.IntegerField(read_only = True)
     class Meta:
@@ -23,12 +30,23 @@ class ProductImageSerializer(serializers.ModelSerializer):
         return models.ProductImage.objects.create(product_id = product_id, **validated_data)
 
 
+class PublisherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Publisher
+        fields = ['id', 'name']
+
+
 
 class ProdcutSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many = True, read_only = True)
+    publisher = PublisherSerializer( read_only = True)
+    
     class Meta:
         model = models.Product
-        fields = ['id','title','descriptions','slug','inventory','unit_price','collection','images']
+        fields = ['id','title','descriptions','slug','inventory','unit_price','collection','publisher','auther','images']
+
+    
+
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):

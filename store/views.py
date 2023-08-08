@@ -10,12 +10,23 @@ from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyMo
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .permissions import IsAdminOrReadOnly
-from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author
 from . import serializers
 from .filters import ProductFilter
 from .paginations import ProductPagination
 
 # Create your views here.
+
+class AuthorModelViewSet(ModelViewSet):
+    queryset = Author.objects.all()
+    serializer_class = serializers.authorSerializers
+    permission_classes = [IsAdminOrReadOnly]
+
+    def destroy(self, request, *args, **kwargs):
+        author = get_object_or_404(Author, pk=kwargs['pk'])
+        if author.products.count() > 0:
+            return Response({'error':'the Author can not be deleted because it is associated with products'},status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return super().destroy(request, *args, **kwargs)
 
 
 class CollectionViewSet(ModelViewSet):
@@ -33,7 +44,7 @@ class CollectionViewSet(ModelViewSet):
 
 class ProductViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Product.objects.prefetch_related('images').all()
+    queryset = Product.objects.prefetch_related('images').select_related('publisher').all()
     serializer_class = serializers.ProdcutSerializer
     pagination_class = ProductPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

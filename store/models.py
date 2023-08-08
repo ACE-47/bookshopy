@@ -9,11 +9,14 @@ from .validatiors import validate_file_size
 
 class Publisher(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField(null=True, blank=True)
+    descriptions = models.TextField(null=True, blank=True)
   
 
     def __str__(self):
         return self.name
+    
+    class Meta:
+        ordering = ['name']
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
@@ -33,11 +36,12 @@ class Author(models.Model):
     name = models.CharField(max_length=255)
     about = models.TextField(null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    author_image = models.ImageField(blank=True, null=True) # set default image 
+    author_image = models.ImageField(upload_to='store/author_images',blank=True, null=True) # set default image 
 
     def __str__(self):
         return self.name
-    
+
+
 
 
 class Product(models.Model):
@@ -58,7 +62,7 @@ class Product(models.Model):
     publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
     promotions = models.ManyToManyField(Promotion,blank=True)
-    auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
+    auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products')
 
     def __str__(self):
         return self.title

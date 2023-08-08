@@ -9,9 +9,62 @@ from django.urls import reverse
 from . import models
 
 # Register your models here.
+
+# class AuthorImageInline(admin.TabularInline):
+#     model = models.Author
+#     readonly_fields = ['thumbnail']
+
+#     def thumbnail(self, instanc : models.Author):
+#         return format_html(f'<img src="{instanc.image.url}" class="thumbnail"/>')
+    
+
+
 @admin.register(models.Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ['name', 'about', 'birth_date',]
+
+    list_display = ['name', 'about', 'birth_date','products_count']
+    readonly_fields = ['image_tag']
+    search_fields =['name']
+
+    list_per_page = 10
+
+    def image_tag(self, author:models.Author):
+        if author.author_image.url is not None:
+            return format_html(f'<img src="{author.author_image.url}" class="thumbnail"/>')
+        
+    image_tag.short_description = 'Image'
+    
+        
+
+    @admin.display(ordering='products_count')
+    def products_count(self, author:models.Author):
+        url = (reverse('admin:store_product_changelist') + '?' 
+               + urlencode({'auther_id':str(author.id)}))
+        return format_html('<a href={}>{}<a>',url,author.products_count)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(products_count = Count('products'))
+   
+    class Media:
+        css = {
+            'all':['store/styles.css']
+        }
+        
+@admin.register(models.Publisher)
+class PublisherAdmin(admin.ModelAdmin):
+    list_display = ['name', 'descriptions', 'products_count']
+    search_fields = ['name']
+    list_per_page = 10
+
+    @admin.display(ordering='products_count')
+    def products_count(self, publisher:models.Publisher):
+        url = (reverse('admin:store_product_changelist') + '?' 
+               + urlencode({'publisher_id':str(publisher.id)}))
+        return format_html('<a href={}>{}<a>',url,publisher.products_count)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request).annotate(products_count = Count('products'))
+
 
 class InventoryFilter(admin.SimpleListFilter):
     title = 'Inventory'
@@ -40,7 +93,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields =['title']
     autocomplete_fields = ['collection']
     prepopulated_fields = {'slug':['title']}
-    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory']
+    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory', 'publisher']
     list_filter = ['collection','last_update', InventoryFilter]
 
     list_per_page = 20
