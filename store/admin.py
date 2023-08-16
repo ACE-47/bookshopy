@@ -20,7 +20,8 @@ from . import models
 
 @admin.register(models.Promotion)
 class PromotionAdmin(admin.ModelAdmin):
-    list_display = ['title','discount', 'description']
+    
+    list_display = ['title','discount', 'descriptions']
 
 
 

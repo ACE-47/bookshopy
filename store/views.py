@@ -10,12 +10,16 @@ from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyMo
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .permissions import IsAdminOrReadOnly
-from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion
 from . import serializers
 from .filters import ProductFilter
 from .paginations import ProductPagination
 
 # Create your views here.
+class PromotionsViewSet(ModelViewSet):
+    queryset = Promotion.objects.all()
+    serializer_class = serializers.PromotionSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 class AuthorModelViewSet(ModelViewSet):
     queryset = Author.objects.all()

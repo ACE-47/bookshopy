@@ -29,8 +29,8 @@ class Collection(models.Model):
         ordering = ['title']
 
 class Promotion(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    descriptions = models.CharField(max_length=255)
     discount = models.IntegerField(default=0, validators=[MinValueValidator(0)])
 
     def __str__(self):
@@ -66,7 +66,7 @@ class Product(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
-    promotions = models.ManyToManyField(Promotion,blank=True)
+    promotions = models.ManyToManyField(Promotion,  blank=True )
     auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products')
 
     def __str__(self):
