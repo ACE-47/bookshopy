@@ -123,10 +123,26 @@ class ProductAdmin(admin.ModelAdmin):
             'all':['store/styles.css']
         }
 
+
+@admin.register(models.ProductAdvertize)
+class ProductAdvertizeAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['product']
+    list_display = ['product' , 'product_id']
+
+    def product_id(self, productAd:models.ProductAdvertize):
+        url = (reverse('admin:store_product_changelist') + 
+               str(productAd.product.id)
+            #    + '?' 
+            #    + urlencode({'':str(productAd.id)})
+               )
+        return format_html('<a href={}>{}<a>',url,productAd.product.id)
+
 @admin.register(models.Collection)
 class CollectionAdmin(admin.ModelAdmin):
+    autocomplete_fields = ['featured_product']
     search_fields = ['title']
     list_display = ['title','products_count']
+
 
     @admin.display(ordering='products_count')
     def products_count(self, collection:models.Collection):

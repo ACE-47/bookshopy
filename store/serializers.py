@@ -50,13 +50,19 @@ class ProdcutSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Product
-        fields = ['id','title','descriptions','slug', 'inventory','unit_price','collection','publisher','auther','images']
+        fields = ['id','title','descriptions','slug', 'inventory','unit_price','collection','publisher','auther','images', 'promotions']
 
     # def get_auther(self, author:models.Author):
     #     return author.name
         # return 0
     
 
+
+class ProductAdverSerializer(serializers.ModelSerializer):
+    product = ProdcutSerializer()
+    class Meta: 
+        model = models.ProductAdvertize
+        fields =['product']
 
 
 class SimpleProductSerializer(serializers.ModelSerializer):

@@ -10,7 +10,7 @@ from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyMo
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .permissions import IsAdminOrReadOnly
-from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion, ProductAdvertize
 from . import serializers
 from .filters import ProductFilter
 from .paginations import ProductPagination
@@ -79,6 +79,9 @@ class ProductImageViewSet(ModelViewSet):
         return ProductImage.objects.filter(product_id = self.kwargs['product_pk'])
     
 
+class ProductAdvertizeViewSet(ModelViewSet):
+    queryset = ProductAdvertize.objects.all()
+    serializer_class = serializers.ProductAdverSerializer
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Cart.objects.prefetch_related('items__product').all()
