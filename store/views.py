@@ -71,6 +71,7 @@ class ProductViewSet(ModelViewSet):
 class ProductImageViewSet(ModelViewSet):
     serializer_class = serializers.ProductImageSerializer
     permission_classes = [IsAdminOrReadOnly]
+    
 
     def get_serializer_context(self):
         return {'product_id': self.kwargs['product_pk']}
@@ -82,6 +83,7 @@ class ProductImageViewSet(ModelViewSet):
 class ProductAdvertizeViewSet(ModelViewSet):
     queryset = ProductAdvertize.objects.all()
     serializer_class = serializers.ProductAdverSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
     queryset = Cart.objects.prefetch_related('items__product').all()
