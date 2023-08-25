@@ -66,14 +66,16 @@ INTERNAL_IPS = [
     "127.0.0.1",
     '192.168.5.81',
     '192.168.5.239',
+    '192.168.31.34',
+    '0.0.0.0',
     
     # ...
 ]
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    'http://192.168.5.239:8000',
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8000",
+#     "http://127.0.0.1:8000",
+#     'http://192.168.5.239:8000',
+# ]
 
 ROOT_URLCONF = 'bookshopy.urls'
 
@@ -105,7 +107,7 @@ DATABASES = {
         'NAME': 'bookshopy2',
         'HOST': 'localhost',
         'USER': 'root',
-        'PASSWORD': 'root'
+        'PASSWORD': 'ace47M'
     }
 }
 

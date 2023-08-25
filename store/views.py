@@ -81,7 +81,8 @@ class ProductImageViewSet(ModelViewSet):
     
 
 class ProductAdvertizeViewSet(ModelViewSet):
-    queryset = ProductAdvertize.objects.all()
+    queryset = ProductAdvertize.objects.prefetch_related('product').select_related('product__collection').select_related('product__publisher').select_related('product__auther').prefetch_related('product__promotions').all()
+
     serializer_class = serializers.ProductAdverSerializer
     permission_classes = [IsAdminOrReadOnly]
 
