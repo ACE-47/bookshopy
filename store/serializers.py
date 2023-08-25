@@ -3,12 +3,21 @@ from django.db import transaction
 from rest_framework import serializers
 from . import models
 
+class SimpleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Product
+        fields = ['id','title','unit_price']
+
 
 class authorSerializers(serializers.ModelSerializer):
+    products = SimpleProductSerializer(many =True)
     class Meta:
         model = models.Author
-        fields = ['id' ,'name', 'about', 'birth_date', 'author_image']
-       
+        fields = ['id' ,'name', 'about', 'birth_date', 'products','author_image']
+
+
+    def get_products(self,author:models.Author):
+        return models.Product.objects.prefetch_related('products').filter(auther_id = author.pk)[:5]
 
 
 class CollectionSerializer(serializers.ModelSerializer):
@@ -41,19 +50,22 @@ class PromotionSerializer(serializers.ModelSerializer):
         model = models.Promotion
         fields = ['id', 'title', 'descriptions', 'discount',]
 
-
+class SimpleAuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Author
+        fields = ['id', 'name']
 
 class ProdcutSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many = True, read_only = True)
     publisher = PublisherSerializer( read_only = True)
-    # auther = serializers.CharField()
+    auther = SimpleAuthorSerializer()
 
     class Meta:
         model = models.Product
         fields = ['id','title','descriptions','slug', 'inventory','unit_price','collection','publisher','auther','images', 'promotions']
 
     # def get_auther(self, author:models.Author):
-    #     return author.name
+    #     return author.name & author.id
         # return 0
     
 
@@ -65,10 +77,7 @@ class ProductAdverSerializer(serializers.ModelSerializer):
         fields =['product']
 
 
-class SimpleProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Product
-        fields = ['id','title','unit_price']
+
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()

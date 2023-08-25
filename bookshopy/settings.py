@@ -25,9 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-+i38lb66th^mr^nu$95v=j^fg%3)mfy_2)m_hq%^u+d*l-k@*s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = True
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','192.168.31.34']
+ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1','192.168.31.34', '192.168.9.81','192.168.9.84', '10.23.154.45']
 
 
 # Application definition
@@ -63,15 +64,15 @@ MIDDLEWARE = [
 INTERNAL_IPS = [
     # ...
     "127.0.0.1",
+    '192.168.5.81',
+    '192.168.5.239',
+    
     # ...
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
-    
-
-    
-
+    'http://192.168.5.239:8000',
 ]
 
 ROOT_URLCONF = 'bookshopy.urls'
@@ -104,7 +105,7 @@ DATABASES = {
         'NAME': 'bookshopy2',
         'HOST': 'localhost',
         'USER': 'root',
-        'PASSWORD': 'ace47M'
+        'PASSWORD': 'root'
     }
 }
 
