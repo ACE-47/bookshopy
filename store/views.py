@@ -22,7 +22,7 @@ class PromotionsViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
 
 class AuthorModelViewSet(ModelViewSet):
-    queryset = Author.objects.all()
+    queryset = Author.objects.prefetch_related('products').all()
     serializer_class = serializers.authorSerializers
     permission_classes = [IsAdminOrReadOnly]
 

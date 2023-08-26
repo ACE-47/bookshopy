@@ -11,14 +11,16 @@ class SimpleProductSerializer(serializers.ModelSerializer):
 
 class authorSerializers(serializers.ModelSerializer):
     products = SimpleProductSerializer(many =True)
+    # products = serializers.CharField()
     class Meta:
         model = models.Author
         fields = ['id' ,'name', 'about', 'birth_date', 'products','author_image']
 
 
-    def get_products(self,author:models.Author):
-        return models.Product.objects.prefetch_related('products').filter(auther_id = author.pk)[:5]
-
+    # def get_products(self,author:models.Author):
+    #     products = models.Product.objects.prefetch_related('products').filter(auther_id = author.pk)[:5]
+    #     print(products)
+    #     return products
 
 class CollectionSerializer(serializers.ModelSerializer):
     products_count = serializers.IntegerField(read_only = True)
