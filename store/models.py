@@ -66,7 +66,7 @@ class Product(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
-    promotions = models.ManyToManyField(Promotion,  blank=True )
+    promotions = models.ManyToManyField(Promotion,  blank=True,related_name='products' )
     auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products')
 
     def __str__(self):

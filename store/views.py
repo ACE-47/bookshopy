@@ -17,12 +17,12 @@ from .paginations import ProductPagination
 
 # Create your views here.
 class PromotionsViewSet(ModelViewSet):
-    queryset = Promotion.objects.all()
+    queryset = Promotion.objects.prefetch_related('products').all()
     serializer_class = serializers.PromotionSerializer
     permission_classes = [IsAdminOrReadOnly]
 
 class AuthorModelViewSet(ModelViewSet):
-    queryset = Author.objects.all()
+    queryset = Author.objects.prefetch_related('products').all()
     serializer_class = serializers.authorSerializers
     permission_classes = [IsAdminOrReadOnly]
 
@@ -48,7 +48,7 @@ class CollectionViewSet(ModelViewSet):
 
 class ProductViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Product.objects.prefetch_related('images').select_related('publisher').all()
+    queryset = Product.objects.prefetch_related('images').select_related('publisher').select_related('auther').select_related('collection').prefetch_related('promotions').all()
     serializer_class = serializers.ProdcutSerializer
     pagination_class = ProductPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -81,7 +81,7 @@ class ProductImageViewSet(ModelViewSet):
     
 
 class ProductAdvertizeViewSet(ModelViewSet):
-    queryset = ProductAdvertize.objects.prefetch_related('product').select_related('product__collection').select_related('product__publisher').select_related('product__auther').prefetch_related('product__promotions').all()
+    queryset = ProductAdvertize.objects.prefetch_related('product__images').select_related('product__collection').select_related('product__publisher').select_related('product__auther').prefetch_related('product__promotions').all()
 
     serializer_class = serializers.ProductAdverSerializer
     permission_classes = [IsAdminOrReadOnly]

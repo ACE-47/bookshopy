@@ -99,7 +99,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields =['title']
     autocomplete_fields = ['collection']
     prepopulated_fields = {'slug':['title']}
-    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory',]
+    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory','last_update']
     list_filter = ['collection','last_update', InventoryFilter]
 
     list_per_page = 20
