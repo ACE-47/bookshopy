@@ -194,6 +194,6 @@ class CreateOrderSerializer(serializers.Serializer):
                             quantity = item.quantity,
                             ) for item in cartItems ]
 
-            models.OrderItem.objects.bulk_create(orderItems)
+            models.OrderItem.objects.bulk_create([orderItems])
             models.Cart.objects.filter(pk = cart_id).delete()
             return order
