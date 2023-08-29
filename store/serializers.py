@@ -170,6 +170,7 @@ class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
     def validate_cart_id(self, cart_id):
+        print(cart_id)
         if not models.Cart.objects.filter(pk = cart_id).exists():
             raise serializers.ValidationError('No Cart with the given ID was Found')
         
@@ -181,11 +182,16 @@ class CreateOrderSerializer(serializers.Serializer):
         with transaction.atomic():
             cart_id = self.validated_data['cart_id']
             user_id = self.context['user_id']
+
+            print(cart_id)
+            print(user_id)
             
             customer = models.Customer.objects.get(user_id = user_id)
             order = models.Order.objects.create(customer = customer)
 
             cartItems = models.CartItem.objects.select_related('product').filter(cart_id = cart_id)
+
+            print(cartItems)
 
             orderItems = [models.OrderItem(
                             order = order,
@@ -194,6 +200,9 @@ class CreateOrderSerializer(serializers.Serializer):
                             quantity = item.quantity,
                             ) for item in cartItems ]
 
+            print(orderItems)
             models.OrderItem.objects.bulk_create([orderItems])
+
+
             models.Cart.objects.filter(pk = cart_id).delete()
             return order
