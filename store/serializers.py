@@ -131,7 +131,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         return self.instance
 
 
-        return super().save(**kwargs)
+        # return super().save(**kwargs)
     
 class UpdateCartItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -176,6 +176,8 @@ class CreateOrderSerializer(serializers.Serializer):
         
         if models.CartItem.objects.filter(cart_id = cart_id).count() == 0:
             raise serializers.ValidationError('the current Cat is Empty')
+        
+        return cart_id
 
     
     def save(self, **kwargs):
@@ -183,15 +185,10 @@ class CreateOrderSerializer(serializers.Serializer):
             cart_id = self.validated_data['cart_id']
             user_id = self.context['user_id']
 
-            print(cart_id)
-            print(user_id)
-            
             customer = models.Customer.objects.get(user_id = user_id)
             order = models.Order.objects.create(customer = customer)
 
             cartItems = models.CartItem.objects.select_related('product').filter(cart_id = cart_id)
-
-            print(cartItems)
 
             orderItems = [models.OrderItem(
                             order = order,
@@ -201,7 +198,7 @@ class CreateOrderSerializer(serializers.Serializer):
                             ) for item in cartItems ]
 
             print(orderItems)
-            models.OrderItem.objects.bulk_create([orderItems])
+            models.OrderItem.objects.bulk_create(orderItems)
 
 
             models.Cart.objects.filter(pk = cart_id).delete()
