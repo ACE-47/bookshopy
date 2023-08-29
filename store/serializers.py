@@ -147,7 +147,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         
         
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = SimpleProductSerializer(many = True)
+    product = SimpleProductSerializer()
     class Meta:
         model = models.OrderItem
         fields = ['product', 'quantity', 'unit_price']
@@ -192,7 +192,7 @@ class CreateOrderSerializer(serializers.Serializer):
                             product = item.product,
                             unit_price = item.product.unit_price,
                             quantity = item.quantity,
-                            ) for item in cartItems]
+                            ) for item in cartItems ]
 
             models.OrderItem.objects.bulk_create(orderItems)
             models.Cart.objects.filter(pk = cart_id).delete()
