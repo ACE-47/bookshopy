@@ -147,7 +147,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         
         
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = SimpleProductSerializer()
+    product = SimpleProductSerializer(many = True)
     class Meta:
         model = models.OrderItem
         fields = ['product', 'quantity', 'unit_price']
