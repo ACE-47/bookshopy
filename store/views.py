@@ -166,7 +166,7 @@ class OrderViewSet(ModelViewSet):
             return Order.objects.all().prefetch_related('items__product').order_by('-placed_at')
         
         customer_id = Customer.objects.only('id').get(user_id = user.id)
-        return Order.objects.filter(customer_id = customer_id)
+        return Order.objects.prefetch_related('items__product').filter(customer_id = customer_id)
     
 
     def create(self, request, *args, **kwargs):
