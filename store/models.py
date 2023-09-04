@@ -1,6 +1,7 @@
 from uuid import uuid4
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
+from django.conf import settings
 from django.contrib import admin
 from django.core.validators import MinValueValidator
 
@@ -88,7 +89,7 @@ class ProductImage(models.Model):
 
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone = models.CharField(max_length=255)
     birth_date = models.DateField(null=True)
 
