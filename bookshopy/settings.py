@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-+i38lb66th^mr^nu$95v=j^fg%3)mfy_2)m_hq%^u+d*l-k@*s
 # DEBUG = True
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1','192.168.31.34', '192.168.9.81','192.168.9.84', '10.23.154.45']
+ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1','192.168.31.34', '192.168.9.81','192.168.9.84', '10.23.154.45','10.21.54.28']
 
 
 # Application definition
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'store',
     'core',
+    'like',
     
 ]
 
@@ -69,6 +70,7 @@ INTERNAL_IPS = [
     '192.168.5.239',
     '192.168.31.34',
     '0.0.0.0',
+    '10.21.54.28'
     
     # ...
 ]
@@ -108,7 +110,7 @@ DATABASES = {
         'NAME': 'bookshopy3',
         'HOST': 'localhost',
         'USER': 'root',
-        'PASSWORD': 'ace47M'
+        'PASSWORD': 'root'
     }
 }
 
