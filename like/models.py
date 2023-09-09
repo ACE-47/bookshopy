@@ -14,12 +14,13 @@ class LikedItem(models.Model):
     # object_id = models.PositiveIntegerField()
     # contetn_object = GenericForeignKey()
 
-    productLiked = models.ManyToManyField(Product, related_name='items')
+    productLiked = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
+    
 
     
 
     def __str__(self):
-        return f'{self.user.first_name} {self.user.last_name}'
+        return f'{self.user.username}'
     
     @admin.display(ordering=['user__first_name'])
     def first_name(self):
