@@ -111,7 +111,7 @@ DATABASES = {
         'NAME': 'bookshopy3',
         'HOST': 'localhost',
         'USER': 'root',
-        'PASSWORD': 'root'
+        'PASSWORD': 'ace47M'
     }
 }
 

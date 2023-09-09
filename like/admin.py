@@ -11,8 +11,8 @@ from .models import LikedItem
 
 @admin.register(LikedItem)
 class LikedItemAdmin(admin.ModelAdmin):
-    list_display = ['first_name','last_name']
-    autocomplete_fields =['productLiked','user']
+    list_display = ['user']
+    autocomplete_fields =['user']
     list_select_related = ['user']
     # inlines =[ProductInline]
 

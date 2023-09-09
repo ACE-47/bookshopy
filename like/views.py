@@ -10,7 +10,7 @@ from .models import LikedItem
 class LikedItemViewSet(ModelViewSet):
     # queryset = LikedItem.objects.all()
     
-    serializer_class = LikedItemSerializer
+    # serializer_class = LikedItemSerializer
     # http_method_names = ['get','patch','post','delete','head','options']
 
     
@@ -19,9 +19,9 @@ class LikedItemViewSet(ModelViewSet):
         user = self.request.user
 
         if user.is_staff :
-            return LikedItem.objects.select_related('productLiked').all()
+            return LikedItem.objects.select_related('product').all()
         
-        return LikedItem.objects.select_related('productLiked').filter(user_id = user.id)
+        return LikedItem.objects.select_related('product').filter(user_id = user.id)
     
 
     def get_serializer_class(self):

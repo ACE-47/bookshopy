@@ -4,10 +4,10 @@ from store.serializers import SimpleProductSerializer
 from store.models import Product
 
 class LikedItemSerializer(serializers.ModelSerializer):
-    productLiked = SimpleProductSerializer()
+    product = SimpleProductSerializer()
     class Meta:
         model = LikedItem
-        fields = ['productLiked']
+        fields = ['product']
 
 
 class AddLikedItemSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class AddLikedItemSerializer(serializers.ModelSerializer):
 
         product = Product.objects.get(pk = product_id )
         try:
-            likedItem = LikedItem.objects.prefetch_related('productLiked').get(user_id = user_id, productLiked__id= product_id)
+            likedItem = LikedItem.objects.prefetch_related('product').get(user_id = user_id, product_id = product_id)
             print(likedItem)
             
             # likedItem.first().productLiked.clear()
@@ -38,8 +38,8 @@ class AddLikedItemSerializer(serializers.ModelSerializer):
         
         except LikedItem.DoesNotExist :
             
-            likedItem = LikedItem.objects.create(user_id = user_id)
-            print(likedItem.productLiked)
+            likedItem = LikedItem.objects.create(user_id = user_id, product = product)
+            print(likedItem.product)
             
             self.instance = likedItem
 
