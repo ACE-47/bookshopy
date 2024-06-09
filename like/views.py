@@ -11,7 +11,7 @@ class LikedItemViewSet(ModelViewSet):
     # queryset = LikedItem.objects.all()
     
     # serializer_class = LikedItemSerializer
-    # http_method_names = ['get','patch','post','delete','head','options']
+    http_method_names = ['get','post','head','options']
 
     
 
@@ -21,7 +21,7 @@ class LikedItemViewSet(ModelViewSet):
         if user.is_staff :
             return LikedItem.objects.select_related('product').all()
         
-        return LikedItem.objects.select_related('product').filter(user_id = user.id)
+        return LikedItem.objects.select_related('product').prefetch_related('product__images').select_related('product__publisher').select_related('product__auther').select_related('product__collection').prefetch_related('product__promotions').filter(user_id = user.id)
     
 
     def get_serializer_class(self):

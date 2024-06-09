@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from .models import LikedItem
-from store.serializers import SimpleProductSerializer
+from store.serializers import ProdcutSerializer
 from store.models import Product
 
 class LikedItemSerializer(serializers.ModelSerializer):
-    product = SimpleProductSerializer()
+    product = ProdcutSerializer()
     class Meta:
         model = LikedItem
         fields = ['product']
@@ -33,6 +33,7 @@ class AddLikedItemSerializer(serializers.ModelSerializer):
             likedItem = LikedItem.objects.prefetch_related('product').get(user_id = user_id, product_id = product_id)
             print(likedItem)
             
+            likedItem.delete()
             # likedItem.first().productLiked.clear()
             # self.instance = likedItem
         
@@ -44,4 +45,5 @@ class AddLikedItemSerializer(serializers.ModelSerializer):
             self.instance = likedItem
 
             print(self.instance)        
+
         return self.instance
