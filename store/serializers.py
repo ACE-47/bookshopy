@@ -71,6 +71,8 @@ class ProdcutSerializer(serializers.ModelSerializer):
 
 
 class ProductAdverSerializer(serializers.ModelSerializer):
+    # consider this solution or make light version of product serializer 
+    # product = SimpleAuthorSerializer()
     product = ProdcutSerializer()
     class Meta: 
         model = models.ProductAdvertize

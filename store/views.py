@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -12,7 +12,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsAdminOrReadOnly
 from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion, ProductAdvertize
 from . import serializers
-from .filters import ProductFilter
+# from .filters import ProductFilter
 from .paginations import ProductPagination
 
 # Create your views here.
