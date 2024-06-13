@@ -99,10 +99,26 @@ class CartSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = models.Cart
-        fields = ['id', 'items','total_cart_price']
+        fields = ['id','customer_id', 'items','total_cart_price']
 
     def get_total_cart_price(self, cart:models.Cart):
         return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
+    
+    def save(self, **kwargs):
+        user_id = self.context['user_id']
+        customer = models.Customer.objects.get(user_id = user_id)
+        
+        
+        if models.Cart.objects.filter(customer_id = customer.id).exists():
+            raise serializers.ValidationError('Cart already Existis')
+        
+        # try:
+        cart = models.Cart.objects.create(customer = customer)
+        cart.save()
+        self.instance = cart
+        # except:
+        
+        return self.instance
         
 
 class AddCartItemSerializer(serializers.ModelSerializer):

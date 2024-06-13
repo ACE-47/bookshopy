@@ -86,11 +86,23 @@ class ProductAdvertizeViewSet(ModelViewSet):
     serializer_class = serializers.ProductAdverSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
-    queryset = Cart.objects.prefetch_related('items__product').all()
+# class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
+class CartViewSet(ModelViewSet):
+    # queryset = Cart.objects.prefetch_related('items__product').all()
     serializer_class = serializers.CartSerializer
-
     
+    def get_serializer_context(self):
+        return {'user_id':self.request.user.id}
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Cart.objects.all().prefetch_related('items__product')
+        
+        customer_id = Customer.objects.only('id').get(user_id = user.id)
+        return Cart.objects.prefetch_related('items__product').filter(customer_id = customer_id)
+    
+
 class CartItemViewSet(ModelViewSet):
     http_method_names = ['get','post','delete','patch']
     

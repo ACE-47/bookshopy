@@ -108,7 +108,7 @@ WSGI_APPLICATION = 'bookshopy.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bookshopy3',
+        'NAME': 'bookshopy4',
         'HOST': 'localhost',
         'USER': 'root',
         'PASSWORD': 'ace47M'
