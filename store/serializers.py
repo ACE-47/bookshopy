@@ -78,8 +78,63 @@ class ProductAdverSerializer(serializers.ModelSerializer):
         model = models.ProductAdvertize
         fields =['product']
 
-
-
+# package
+        
+class PackageItemSerializer(serializers.ModelSerializer):
+    product = SimpleProductSerializer()
+    class Meta:
+        model = models.PackageItem
+        fields = ['id', 'package', 'product', 'quantity']
+        
+        
+class PackageSerializer(serializers.ModelSerializer):
+    items = PackageItemSerializer(many = True, read_only = True)
+    class Meta:
+        model = models.Package
+        fields =['id', 'title','descriptions', 'items', 'unit_price', 'image']
+        # fields =['id', 'title', 'unit_price']
+        
+    def create(self, validated_data):
+        user = self.context['user']
+        return models.Package.objects.create(created_by = user, **validated_data) 
+    
+    
+class AddPackageItemSerializer(serializers.ModelSerializer):
+    product_id = serializers.IntegerField()
+    package_id = serializers.IntegerField(read_only = True)
+    
+    class Meta:
+        model = models.PackageItem
+        fields = ['id', 'package_id', 'product_id', 'quantity']
+        
+    def validate_product_id(self, value):
+        if not models.Product.objects.filter(pk = value).exists():
+            return serializers.ValidationError('No Product with the given ID was found!')
+        return value
+    
+    def save(self, **kwargs):
+        package_id = self.context['package_id']
+        product_id = self.validated_data['product_id']
+        quantity = self.validated_data['quantity']
+        
+        try:
+            packageItem = models.PackageItem.objects.get(package_id = package_id, product_id = product_id)
+            packageItem.quantity += quantity
+            packageItem.save()
+            self.instance = packageItem
+            
+        except models.PackageItem.DoesNotExist:
+            packageItem = models.PackageItem.objects.create(package_id = package_id, **self.validated_data)
+            self.instance = packageItem
+            
+        return self.instance
+    
+class UpdatePackageItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PackageItem
+        fields = ['quantity']
+    
+    
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()
@@ -153,6 +208,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         # return super().save(**kwargs)
     
 class UpdateCartItemSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = models.CartItem
         fields = ['quantity']

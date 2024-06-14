@@ -32,7 +32,7 @@ class Collection(models.Model):
 class Promotion(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True)
     descriptions = models.CharField(max_length=255)
-    discount = models.IntegerField(default=0, validators=[MinValueValidator(0)])
+    discount = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
 
     def __str__(self):
         return self.title
@@ -85,9 +85,40 @@ class ProductImage(models.Model):
 # file = models.FileField(upload_to='store/images', validators=[FileExtensionValidator(allow_extensions =['pdf])])
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='store/images', )
+    image = models.ImageField(upload_to='store/images')
 
 
+# packages
+
+class Package(models.Model):
+    title = models.CharField(max_length=255)
+    descriptions = models.TextField(null=True, blank=True)
+    unit_price = models.DecimalField(max_digits=6,
+        decimal_places=2,
+        validators= [MinValueValidator(1)])
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to='store/package_image')
+    
+    def __str__(self) -> str:
+        return self.title
+    
+    class Meta:
+        ordering = ['created_at', 'title']
+        
+
+# class PackageImage(models.Model):
+#     package = models.OneToOneField(Package, on_delete=models.CASCADE, related_name='image')
+#     image = models.ImageField(upload_to='store/package_images')
+
+class PackageItem(models.Model):
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, blank=True, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
+
+    unique_together = [['product']]
+    
+    
 class Customer(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone = models.CharField(max_length=255)

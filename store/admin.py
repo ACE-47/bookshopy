@@ -88,7 +88,7 @@ class InventoryFilter(admin.SimpleListFilter):
 class ProductImageInline(admin.TabularInline):
     model = models.ProductImage
     readonly_fields = ['thumbnail']
-
+    
     def thumbnail(self, instanc : models.ProductImage):
         return format_html(f'<img src="{instanc.image.url}" class="thumbnail"/>')
 
@@ -96,6 +96,7 @@ class ProductImageInline(admin.TabularInline):
 class ProductAdmin(admin.ModelAdmin):
     actions = ['clear_inventory']
     inlines = [ProductImageInline]
+    
     search_fields =['title']
     autocomplete_fields = ['collection']
     prepopulated_fields = {'slug':['title']}
@@ -174,6 +175,22 @@ class CustomerAdmin(admin.ModelAdmin):
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(orders = Count('order'))
     
+
+# package 
+
+class PackageItemInline(admin.TabularInline):
+    model = models.PackageItem
+    autocomplete_fields = ['product'] 
+    
+
+@admin.register(models.Package)
+class PackageAdmin(admin.ModelAdmin):
+    inlines = [PackageItemInline]
+    list_display = ['title', 'descriptions', 'unit_price', 'created_by', 'created_at']
+    list_per_page = 10
+    list_select_related = ['created_by']
+    autocomplete_fields = ['created_by']
+    ordering = ['created_at', 'title']
 
 class OrderItemInline(admin.TabularInline):
     model =  models.OrderItem

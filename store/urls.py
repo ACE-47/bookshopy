@@ -8,6 +8,7 @@ router = DefaultRouter()
 router.register('products',views.ProductViewSet, basename='products')
 router.register('products_advertize',views.ProductAdvertizeViewSet, basename='products-advertize')
 router.register('collections',views.CollectionViewSet, basename='collections')
+router.register('packages',views.PackageViewSet, basename='packages')
 router.register('carts',views.CartViewSet, basename='carts')
 router.register('customers',views.CustomerViewSet, basename='customers')
 router.register('orders',views.OrderViewSet, basename='orders')
@@ -21,4 +22,8 @@ product_router.register('images', views.ProductImageViewSet, basename='product-i
 cart_router =routers.NestedDefaultRouter(router, 'carts', lookup = 'cart')
 cart_router.register('items', views.CartItemViewSet, basename='cart-item')
 
-urlpatterns = router.urls + product_router.urls + cart_router.urls
+package_router = routers.NestedDefaultRouter(router, 'packages', lookup = 'package')
+package_router.register('items', views.PackageItemViewSet, basename= 'package-items')
+
+
+urlpatterns = router.urls + product_router.urls + cart_router.urls + package_router.urls

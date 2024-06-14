@@ -10,7 +10,7 @@ from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyMo
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .permissions import IsAdminOrReadOnly
-from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion, ProductAdvertize
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion, ProductAdvertize, Package, PackageItem
 from . import serializers
 # from .filters import ProductFilter
 from .paginations import ProductPagination
@@ -85,6 +85,35 @@ class ProductAdvertizeViewSet(ModelViewSet):
 
     serializer_class = serializers.ProductAdverSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+
+#  packages
+class PackageViewSet(ModelViewSet):
+    queryset = Package.objects.all()
+    serializer_class = serializers.PackageSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def get_serializer_context(self):
+        return {'user': self.request.user}
+    
+class PackageItemViewSet(ModelViewSet):
+    http_method_names = ['get','post','delete','patch']
+   
+    def get_queryset(self):
+        return PackageItem.objects.filter(package_id = self.kwargs['package_pk']).select_related('product')
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.AddPackageItemSerializer
+        
+        elif self.request.method == 'PATCH':
+            return serializers.UpdatePackageItemSerializer
+        
+        return serializers.PackageItemSerializer
+    
+    def get_serializer_context(self):
+        return {'package_id':self.kwargs['package_pk']}
+    
 
 # class CartViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
 class CartViewSet(ModelViewSet):
