@@ -142,11 +142,13 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.CartItem
-        fields = ['id','product','quantity','total_price']
+        fields = ['id','product','package_id','quantity','total_price']
 
     def get_total_price(self, cartItem:models.CartItem):
-        return cartItem.quantity * cartItem.product.unit_price
-
+        if cartItem.product is not None:
+            return cartItem.quantity * cartItem.product.unit_price
+        return cartItem.quantity * cartItem.package.unit_price
+        
 class CartSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only = True)
     items = CartItemSerializer(many = True, read_only = True)
@@ -157,7 +159,14 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ['id','customer_id', 'items','total_cart_price']
 
     def get_total_cart_price(self, cart:models.Cart):
-        return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
+        # return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
+        return sum([(item.quantity * item.product.unit_price) if item.product is not None else (item.quantity * item.package.unit_price) for item in cart.items.all()])
+        # for item in cart.items.all():
+        #     if item.product == None:
+        #         return sum(item.quantity * item.package.unit_price)
+        #     else:
+        #         item.quantity * item.product.unit_price
+            
     
     def save(self, **kwargs):
         user_id = self.context['user_id']
@@ -177,26 +186,43 @@ class CartSerializer(serializers.ModelSerializer):
         
 
 class AddCartItemSerializer(serializers.ModelSerializer):
-
-    product_id = serializers.IntegerField()
+    package_id = serializers.IntegerField(required=False,allow_null=True,)
+    product_id = serializers.IntegerField(required=False,allow_null=True,)
     class Meta:
         model = models.CartItem
-        fields = ['id', 'product_id', 'quantity']
+        fields = ['id', 'product_id', 'package_id', 'quantity']
+        # extra_kwargs = {'product_id': {'required': False},
+        #                 'package_id': {'required': False}
+        #                 } 
 
     def validate_product_id(self, value):
-        if not models.Product.objects.filter(pk = value).exists():
-            return serializers.ValidationError('No Product with the given ID was found!')
+        if value != None:
+            if not models.Product.objects.filter(pk = value).exists():
+                raise serializers.ValidationError('No Product with the given ID was found!')    
+        return value
+    
+    def validate_package_id(self, value):
+        if value != None:
+            if not models.Package.objects.filter(pk = value).exists():
+                return serializers.ValidationError('No such package with the given ID')
         return value
     
     def save(self, **kwargs):
         cart_id = self.context['cart_id']
         product_id = self.validated_data['product_id']
+        package_id = self.validated_data['package_id']
         quantity = self.validated_data['quantity']
 
         try:
-            cartitem = models.CartItem.objects.get(cart_id = cart_id, product_id = product_id)
-            cartitem.quantity += quantity
-            cartitem.save()
+            if product_id != None and package_id == None:
+                cartitem = models.CartItem.objects.get(cart_id = cart_id, product_id = product_id)
+                cartitem.quantity += quantity
+                cartitem.save()
+            else:
+                cartitem = models.CartItem.objects.get(cart_id = cart_id, package_id = package_id)
+                cartitem.quantity += quantity
+                cartitem.save()
+            
             self.instance = cartitem
         except models.CartItem.DoesNotExist:
             cartitem = models.CartItem.objects.create(cart_id = cart_id, **self.validated_data)
@@ -224,13 +250,15 @@ class CustomerSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()
     total_price = serializers.SerializerMethodField()
+    package = PackageSerializer()
     class Meta:
         model = models.OrderItem
-        fields = ['product', 'quantity', 'total_price']
+        fields = ['product', 'quantity', 'package', 'total_price']
 
     def get_total_price(self, orderItem:models.OrderItem):
-        return orderItem.quantity * orderItem.unit_price
-    
+        if orderItem.product is not None:
+            return orderItem.quantity * orderItem.unit_price
+        return orderItem.quantity * orderItem.package.unit_price
 # def get_total_cart_price(self, cart:models.Cart):
 #         return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
 
@@ -243,7 +271,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items','total_order_price']
 
     def get_total_order_price(self, order:models.Order):
-        return sum(item.quantity* item.unit_price for item in order.items.all())
+        return sum(item.quantity * item.unit_price for item in order.items.all())
         
 
 
@@ -256,12 +284,12 @@ class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
 
     def validate_cart_id(self, cart_id):
-        print(cart_id)
+        # print(cart_id)
         if not models.Cart.objects.filter(pk = cart_id).exists():
             raise serializers.ValidationError('No Cart with the given ID was Found')
         
         if models.CartItem.objects.filter(cart_id = cart_id).count() == 0:
-            raise serializers.ValidationError('the current Cat is Empty')
+            raise serializers.ValidationError('the current Cart is Empty')
         
         return cart_id
 
@@ -276,16 +304,17 @@ class CreateOrderSerializer(serializers.Serializer):
 
             cartItems = models.CartItem.objects.select_related('product').filter(cart_id = cart_id)
 
-            orderItems = [models.OrderItem(
+            orderItems = [
+                models.OrderItem(
                             order = order,
                             product = item.product,
-                            unit_price = item.product.unit_price,
+                            package = item.package,
+                            unit_price = item.product.unit_price if item.product is not None else item.package.unit_price,
                             quantity = item.quantity,
                             ) for item in cartItems ]
 
-            print(orderItems)
+            # print(orderItems)
             models.OrderItem.objects.bulk_create(orderItems)
-
-
+            
             models.Cart.objects.filter(pk = cart_id).delete()
             return order

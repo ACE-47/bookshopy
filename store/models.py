@@ -98,7 +98,7 @@ class Package(models.Model):
         validators= [MinValueValidator(1)])
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='store/package_image')
+    image = models.ImageField(upload_to='store/package_image', null=True)
     
     def __str__(self) -> str:
         return self.title
@@ -160,7 +160,8 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems', null=True, blank=True)
+    package = models.ForeignKey(Package, on_delete=models.PROTECT, blank=True, null=True, related_name='orderpackage')
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6,decimal_places =2 )
 
@@ -174,11 +175,12 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True) # null true cuz it will get error cuz only product or package can asign to one cartItem
+    package = models.ForeignKey(Package, on_delete=models.CASCADE, related_name='package', null=True, blank=True)
     quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
-        unique_together = [['cart', 'product']]
+        unique_together = [['cart', 'product', 'package']]
 
 
 class Adress(models.Model):
