@@ -1,4 +1,5 @@
 from typing import Any, List, Optional, Tuple
+from django.utils.safestring import mark_safe 
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
@@ -85,6 +86,7 @@ class InventoryFilter(admin.SimpleListFilter):
         if self.value() == '<10':
             return queryset.filter(inventory__lt = 10)
         
+        
 class ProductImageInline(admin.TabularInline):
     model = models.ProductImage
     readonly_fields = ['thumbnail']
@@ -157,13 +159,18 @@ class CollectionAdmin(admin.ModelAdmin):
 # 
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['first_name', 'last_name','orders']
+    list_display = ['first_name', 'last_name', 'phone', 'birth_date','orders','cart_id']
     list_per_page = 20
     list_select_related = ['user']
     ordering = ['user__first_name', 'user__last_name']
     search_fields = ['user__first_name__istartswith', 'user__last_name__istartswith']
 
     autocomplete_fields = ['user']
+    
+    def cart_id(self, customer):
+        url = (reverse('admin:store_cart_change', args=(customer.cart.id,)) )
+        return format_html('<a href={}>{}</a>',url, customer.cart.id)
+        return customer.cart.id
 
     @admin.display(ordering='orders')
     def orders(self, customer):
@@ -180,7 +187,9 @@ class CustomerAdmin(admin.ModelAdmin):
 
 class PackageItemInline(admin.TabularInline):
     model = models.PackageItem
-    autocomplete_fields = ['product'] 
+    autocomplete_fields = ['product']
+    
+    
     
 
 @admin.register(models.Package)
@@ -191,6 +200,38 @@ class PackageAdmin(admin.ModelAdmin):
     list_select_related = ['created_by']
     autocomplete_fields = ['created_by']
     ordering = ['created_at', 'title']
+    
+
+
+# @admin.register(models.CartItem)
+class CartItemInline(admin.TabularInline):
+    model = models.CartItem
+    autocomplete_fields = ['product']
+    extra = 1
+    
+
+@admin.register(models.Cart)
+class CartAdmin(admin.ModelAdmin):
+    inlines = [CartItemInline]
+    list_display = ['id', 'customer', 'created_at']
+    autocomplete_fields = ['customer']
+    
+    
+    # @admin.display()
+    # def customer_name(self, customer:models.Customer):
+    #     url = (reverse('admin:store_customer_changelist') + '?' 
+    #            + urlencode({'customer_id':str(customer.id)}))
+    #     return format_html('<a href={}>{}<a>',url,customer.customer)
+
+
+# Address Admin
+
+@admin.register(models.Address)
+class AddressAdmin(admin.ModelAdmin):
+    model = models.Address
+    search_fields = ['city']
+    autocomplete_fields = ['city']
+    list_display = ['id', 'user', 'city']
 
 class OrderItemInline(admin.TabularInline):
     model =  models.OrderItem
@@ -202,8 +243,26 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(models.Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
-    autocomplete_fields = ['customer']
-    list_display = ['id', 'customer','placed_at', 'payment_status',]
+    autocomplete_fields = ['customer', 'address']
+    # list_display = ['id', 'customer', 'placed_at', 'payment_status',]
+    list_display = ['id', 'customer', 'total_price','placed_at', 'payment_status', 'address_id']
     ordering = ['-placed_at']
     list_editable = ['payment_status']
     list_per_page = 20
+
+    def address_id(self, order):
+        url = (reverse('admin:store_address_change', args=(order.address.id,)) )
+        return format_html('<a href={}>{}</a>',url, order.address.id)
+    
+# admin:auth_user_change
+    
+    @admin.display(ordering='orders')
+    def total_price(self, order:models.Order):
+        print(order.items.all())
+        return sum([item.unit_price * item.quantity for item in order.items.all()])
+    
+    # def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        
+    #     return super().get_queryset(request).annotate(total_price = Count('items'))
+
+# 

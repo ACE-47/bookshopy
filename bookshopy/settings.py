@@ -34,6 +34,12 @@ ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1','192.168.31.34']
 # Application definition
 
 INSTALLED_APPS = [
+    # 'admin_soft.apps.AdminSoftDashboardConfig',
+    # 'admin_datta.apps.AdminDattaConfig',
+    'admin_volt.apps.AdminVoltConfig',
+    # 'jazzmin',
+    # 'admin_tools_stats',  # this must be BEFORE 'admin_tools' and 'django.contrib.admin'
+    # 'django_nvd3',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     # 'corsheaders',
+    'cities_light',
     'djoser',
     'debug_toolbar',
     'store',
@@ -108,7 +115,7 @@ WSGI_APPLICATION = 'bookshopy.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bookshopy4',
+        'NAME': 'bookshopy5',
         'HOST': 'localhost',
         'USER': 'root',
         'PASSWORD': 'ace47M'
@@ -166,6 +173,11 @@ DJOSER = {
          'current_user':'core.serializers.UserSerializer'
      },
 }
+
+# JAZZMIN_SETTINGS = { 'show_ui_builder' : True,}
+LOGIN_REDIRECT_URL = '/'
+    # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

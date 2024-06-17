@@ -15,16 +15,22 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 
 
+
 urlpatterns = [
+    # path('', include('admin_soft.urls')),
+    # path('', include('admin_datta.urls')),
+    path('', include('admin_volt.urls')),
+    # path('admin_tools_stats/', include('admin_tools_stats.urls')),
     path('admin/', admin.site.urls),
     path("__debug__/", include("debug_toolbar.urls")),
     path('auth/',include('djoser.urls'),),
     path('auth/',include('djoser.urls.jwt'),),
+    re_path(r'^cities_light/api/', include('cities_light.contrib.restframework3')),
     path('like/',include('like.urls'),),
     path('store/',include('store.urls'),),
 

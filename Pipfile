@@ -14,6 +14,8 @@ djoser = "*"
 drf-nested-routers = "*"
 djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
+django-admin-volt = "*"
+django-cities-light = "*"
 
 [dev-packages]
 

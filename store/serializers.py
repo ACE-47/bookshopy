@@ -263,12 +263,20 @@ class OrderItemSerializer(serializers.ModelSerializer):
 #         return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
 
 
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Address
+        fields = ['city', 'more_info']
+        
+       
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many = True)
     total_order_price = serializers.SerializerMethodField()
+    address = AddressSerializer()
     class Meta:
         model = models.Order
-        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items','total_order_price']
+        fields = ['id', 'customer', 'placed_at', 'payment_status', 'items','total_order_price', 'address']
 
     def get_total_order_price(self, order:models.Order):
         return sum(item.quantity * item.unit_price for item in order.items.all())

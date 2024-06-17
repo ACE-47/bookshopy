@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.core.validators import MinValueValidator
 
+
 from .validatiors import validate_file_size 
 # Create your models here.
 
@@ -67,7 +68,7 @@ class Product(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
-    promotions = models.ManyToManyField(Promotion,  blank=True,related_name='products' )
+    promotions = models.ManyToManyField(Promotion,  blank=True,related_name='products',)
     auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products')
 
     def __str__(self):
@@ -138,6 +139,19 @@ class Customer(models.Model):
     class Meta:
         ordering = ['user__first_name', 'user__last_name']
 
+# Location
+class Address(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='address')
+    # governate = models.CharField(max_length=255, null = True, blank = True)
+    city = models.ForeignKey('cities_light.City', on_delete=models.SET_NULL, null= True, blank= True)
+    # street = models.CharField(max_length=255)
+    # zip = models.CharField(max_length=255)
+    more_info = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.city}'
+
+# Orders
 
 class Order(models.Model):
     PAYMENT_STATUS_PENDING = 'P'
@@ -153,9 +167,12 @@ class Order(models.Model):
     placed_at = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
-
+    address = models.ForeignKey(Address, on_delete = models.PROTECT, related_name='address', null= True, blank=True) # that shouldnt be null 
+    
+    
     class Meta:
         permissions = [('cancel_order', 'Can cancel order')]
+
 
 
 class OrderItem(models.Model):
@@ -164,12 +181,13 @@ class OrderItem(models.Model):
     package = models.ForeignKey(Package, on_delete=models.PROTECT, blank=True, null=True, related_name='orderpackage')
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6,decimal_places =2 )
+    
 
 
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     # user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    customer = models.OneToOneField(Customer, on_delete=models.PROTECT, null= True, blank=True)
+    customer = models.OneToOneField(Customer, on_delete=models.PROTECT, null= True, blank=True, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
@@ -183,12 +201,8 @@ class CartItem(models.Model):
         unique_together = [['cart', 'product', 'package']]
 
 
-class Adress(models.Model):
-    street =models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    # zip = models.CharField(max_length=255)
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    # customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
 # class Review(models.Model):
 #     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
