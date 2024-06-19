@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     # 'corsheaders',
-    'cities_light',
+    # 'cities_light',
     'djoser',
     'debug_toolbar',
     'store',
@@ -115,7 +115,7 @@ WSGI_APPLICATION = 'bookshopy.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bookshopy5',
+        'NAME': 'bookshopy6',
         'HOST': 'localhost',
         'USER': 'root',
         'PASSWORD': 'ace47M'

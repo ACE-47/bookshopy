@@ -10,14 +10,14 @@ from rest_framework.mixins import RetrieveModelMixin, CreateModelMixin,DestroyMo
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .permissions import IsAdminOrReadOnly
-from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion, ProductAdvertize, Package, PackageItem
+from .models import Product, ProductImage, OrderItem, Collection, Cart, CartItem, Customer, Order, Author, Promotion, ProductAdvertize, Package, PackageItem, Address
 from . import serializers
 # from .filters import ProductFilter
 from .paginations import ProductPagination
 
 # Create your views here.
 class PromotionsViewSet(ModelViewSet):
-    queryset = Promotion.objects.prefetch_related('products').all()
+    queryset = Promotion.objects.all()
     serializer_class = serializers.PromotionSerializer
     permission_classes = [IsAdminOrReadOnly]
 
@@ -48,7 +48,7 @@ class CollectionViewSet(ModelViewSet):
 
 class ProductViewSet(ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
-    queryset = Product.objects.prefetch_related('images').select_related('publisher').select_related('auther').select_related('collection').prefetch_related('promotions').all()
+    queryset = Product.objects.prefetch_related('images').select_related('publisher').select_related('auther').select_related('collection').select_related('promotion').all()
     serializer_class = serializers.ProdcutSerializer
     pagination_class = ProductPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -89,7 +89,7 @@ class ProductAdvertizeViewSet(ModelViewSet):
 
 #  packages
 class PackageViewSet(ModelViewSet):
-    queryset = Package.objects.all()
+    queryset = Package.objects.prefetch_related('items__product').all()
     serializer_class = serializers.PackageSerializer
     permission_classes = [IsAdminOrReadOnly]
     
@@ -100,7 +100,7 @@ class PackageItemViewSet(ModelViewSet):
     http_method_names = ['get','post','delete','patch']
    
     def get_queryset(self):
-        return PackageItem.objects.filter(package_id = self.kwargs['package_pk']).select_related('product')
+        return PackageItem.objects.select_related('product').filter(package_id = self.kwargs['package_pk'])
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -151,7 +151,7 @@ class CartItemViewSet(ModelViewSet):
         return CartItem.objects.filter(cart_id = self.kwargs['cart_pk']).select_related('product')
 
 class CustomerViewSet(ModelViewSet):
-    queryset = Customer.objects.all()
+    queryset = Customer.objects.select_related('address').select_related('promotion').all()
     serializer_class = serializers.CustomerSerializer
     permission_classes = [IsAdminUser]
 
@@ -162,6 +162,9 @@ class CustomerViewSet(ModelViewSet):
 #             return[IsAdminUser()]
 #         return [IsAuthenticated()]
         
+    # def get_serializer_context(self):
+    #     return {'customer_id': self}
+    
     
     @action(detail = False, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated])
     def me(self,request):
@@ -204,18 +207,22 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            return Order.objects.all().prefetch_related('items__product').order_by('-placed_at')
+            return Order.objects.all().prefetch_related('items__product').order_by('placed_at')
         
         customer_id = Customer.objects.only('id').get(user_id = user.id)
-        return Order.objects.prefetch_related('items__product').filter(customer_id = customer_id)
+        return Order.objects.prefetch_related('items__product').prefetch_related('items__package__items__product').select_related('address').filter(customer_id = customer_id)
     
 
     def create(self, request, *args, **kwargs):
-        serializer = serializers.CreateOrderSerializer(data = request.data, context = {'user_id':self.request.user.id})
+        serializer = serializers.CreateOrderSerializer(data = request.data, context = {'user':self.request.user})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         serializer = serializers.OrderSerializer(order)
         return Response(serializer.data)
+    
+
+# class AdressViewSet(ModelViewSet):
+#     queryset = Address.objects.all()
 
     
     

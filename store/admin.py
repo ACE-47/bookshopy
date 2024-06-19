@@ -22,7 +22,7 @@ from . import models
 @admin.register(models.Promotion)
 class PromotionAdmin(admin.ModelAdmin):
     
-    list_display = ['title','discount', 'descriptions']
+    list_display = ['id', 'title','discount', 'descriptions']
 
 
 
@@ -102,7 +102,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields =['title']
     autocomplete_fields = ['collection']
     prepopulated_fields = {'slug':['title']}
-    list_display = ['title', 'unit_price', 'collection', 'inventory_status', 'inventory','last_update']
+    list_display = ['id', 'title', 'unit_price', 'collection', 'inventory_status', 'inventory','last_update']
     list_filter = ['collection','last_update', InventoryFilter]
 
     list_per_page = 20
@@ -159,18 +159,26 @@ class CollectionAdmin(admin.ModelAdmin):
 # 
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'phone', 'birth_date','orders','cart_id']
+    list_display = ['first_name', 'last_name', 'phone', 'birth_date','orders','cart_id', 'discount','address']
     list_per_page = 20
-    list_select_related = ['user']
+    list_select_related = ['user', 'promotion', 'address']
     ordering = ['user__first_name', 'user__last_name']
     search_fields = ['user__first_name__istartswith', 'user__last_name__istartswith']
 
     autocomplete_fields = ['user']
     
+    # def address(self, customer:models.Customer):
+    #     return customer.location.capital
+    
+    def discount(self, customer:models.Customer):
+        if customer.promotion is not None:
+            return customer.promotion.discount
+        return 0
+    
     def cart_id(self, customer):
         url = (reverse('admin:store_cart_change', args=(customer.cart.id,)) )
         return format_html('<a href={}>{}</a>',url, customer.cart.id)
-        return customer.cart.id
+        # return customer.cart.id
 
     @admin.display(ordering='orders')
     def orders(self, customer):
@@ -195,7 +203,7 @@ class PackageItemInline(admin.TabularInline):
 @admin.register(models.Package)
 class PackageAdmin(admin.ModelAdmin):
     inlines = [PackageItemInline]
-    list_display = ['title', 'descriptions', 'unit_price', 'created_by', 'created_at']
+    list_display = ['id', 'title', 'descriptions', 'unit_price', 'created_by', 'created_at']
     list_per_page = 10
     list_select_related = ['created_by']
     autocomplete_fields = ['created_by']
@@ -230,8 +238,8 @@ class CartAdmin(admin.ModelAdmin):
 class AddressAdmin(admin.ModelAdmin):
     model = models.Address
     search_fields = ['city']
-    autocomplete_fields = ['city']
-    list_display = ['id', 'user', 'city']
+    # autocomplete_fields = ['city']
+    list_display = ['id', 'user', 'capital','city', 'street']
 
 class OrderItemInline(admin.TabularInline):
     model =  models.OrderItem
@@ -245,7 +253,7 @@ class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
     autocomplete_fields = ['customer', 'address']
     # list_display = ['id', 'customer', 'placed_at', 'payment_status',]
-    list_display = ['id', 'customer', 'total_price','placed_at', 'payment_status', 'address_id']
+    list_display = ['id', 'customer', 'total_order_price','placed_at', 'payment_status', 'address_id']
     ordering = ['-placed_at']
     list_editable = ['payment_status']
     list_per_page = 20
@@ -256,10 +264,10 @@ class OrderAdmin(admin.ModelAdmin):
     
 # admin:auth_user_change
     
-    @admin.display(ordering='orders')
-    def total_price(self, order:models.Order):
-        print(order.items.all())
-        return sum([item.unit_price * item.quantity for item in order.items.all()])
+    # @admin.display(ordering='orders')
+    # def total_price(self, order:models.Order):
+    #     print(order.items.all())
+    #     return sum([item.unit_price * item.quantity for item in order.items.all()])
     
     # def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         

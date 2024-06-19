@@ -30,7 +30,7 @@ urlpatterns = [
     path("__debug__/", include("debug_toolbar.urls")),
     path('auth/',include('djoser.urls'),),
     path('auth/',include('djoser.urls.jwt'),),
-    re_path(r'^cities_light/api/', include('cities_light.contrib.restframework3')),
+    # re_path(r'^cities_light/api/', include('cities_light.contrib.restframework3')),
     path('like/',include('like.urls'),),
     path('store/',include('store.urls'),),
 

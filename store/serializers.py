@@ -59,10 +59,12 @@ class ProdcutSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many = True, read_only = True)
     publisher = PublisherSerializer( read_only = True)
     auther = SimpleAuthorSerializer()
-
+    promotion = PromotionSerializer()
+   
+    
     class Meta:
         model = models.Product
-        fields = ['id','title','descriptions','slug', 'inventory','unit_price','collection','publisher','auther','images', 'promotions']
+        fields = ['id','title','descriptions','slug', 'inventory','unit_price','collection','publisher','auther','images', 'promotion']
 
     # def get_auther(self, author:models.Author):
     #     return author.name & author.id
@@ -145,8 +147,15 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = ['id','product','package_id','quantity','total_price']
 
     def get_total_price(self, cartItem:models.CartItem):
-        if cartItem.product is not None:
-            return cartItem.quantity * cartItem.product.unit_price
+        item = cartItem.product
+        if item is not None:
+            total = cartItem.quantity * item.unit_price 
+            if item.promotion is not None:
+                discount = item.unit_price * Decimal((item.promotion.discount / 100))
+                discount_amount = item.unit_price - discount
+                return cartItem.quantity * discount_amount
+            else:    
+                return total
         return cartItem.quantity * cartItem.package.unit_price
         
 class CartSerializer(serializers.ModelSerializer):
@@ -160,7 +169,28 @@ class CartSerializer(serializers.ModelSerializer):
 
     def get_total_cart_price(self, cart:models.Cart):
         # return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
-        return sum([(item.quantity * item.product.unit_price) if item.product is not None else (item.quantity * item.package.unit_price) for item in cart.items.all()])
+        # total_cart_price = sum([(item.quantity * item.product.unit_price) if item.product is not None else (item.quantity * item.package.unit_price) for item in cart.items.all()])
+        
+        total_cart_price = Decimal(0.0)
+        items = cart.items.all()
+        for item in items:
+            if item.product is not None:
+                price = item.product.unit_price * item.quantity
+                if item.product.promotion is not None:
+                    discount_amount =  item.product.unit_price * Decimal(item.product.promotion.discount / 100)
+                    total_cart_price += (item.product.unit_price - discount_amount) * item.quantity
+                else:
+                    total_cart_price += price
+            else:
+                total_cart_price += item.package.unit_price * Decimal(item.quantity)
+            
+        if cart.customer.promotion is not None:
+            discount = cart.customer.promotion.discount
+            discount_amount = total_cart_price * Decimal(discount / 100)
+            return total_cart_price - discount_amount
+        
+        return total_cart_price
+        
         # for item in cart.items.all():
         #     if item.product == None:
         #         return sum(item.quantity * item.package.unit_price)
@@ -239,12 +269,45 @@ class UpdateCartItemSerializer(serializers.ModelSerializer):
         model = models.CartItem
         fields = ['quantity']
 
+# location
 
+class AddressSerializer(serializers.ModelSerializer):
+    # id = serializers.IntegerField(read_only = True)
+    class Meta:
+        model = models.Address
+        fields = ['id','capital', 'city', 'street', 'more_info']
+        
+# Customer
+       
 class CustomerSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(read_only = True)
+    user_id = serializers.IntegerField()
+    # address = AddressSerializer()
+    
     class Meta:
         model =models.Customer
-        fields = ['id', 'user_id', 'phone', 'birth_date']
+        fields = ['id', 'user_id', 'phone', 'birth_date', 'address']
+        
+        
+    # def update(self, instance, validated_data):
+    #     address = validated_data['address']
+    #     # address_id = validated_data['address']['id']
+    #     print(validated_data)
+    #     customer_id = instance.pk
+        
+    #     try:
+    #         address = models.Address.objects.get(address_id = address.pk)
+    #         customer = models.Customer.objects.update(customer_id = customer_id,**self.validated_data)
+    #         customer.save()
+    #         instance = customer
+            
+    #     except models.Address.DoesNotExist:
+    #         address = models.Address.objects.create(**address)
+    #         customer = models.Customer.objects.update(customer_id = customer_id, **self.validated_data)
+    #         customer.save()
+    #         instance = customer
+            
+    #     return instance
+    
         
         
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -263,23 +326,20 @@ class OrderItemSerializer(serializers.ModelSerializer):
 #         return sum([item.quantity * item.product.unit_price for item in cart.items.all()])
 
 
-class AddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Address
-        fields = ['city', 'more_info']
+
         
        
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many = True)
-    total_order_price = serializers.SerializerMethodField()
+    # total_order_price = serializers.SerializerMethodField()
     address = AddressSerializer()
     class Meta:
         model = models.Order
         fields = ['id', 'customer', 'placed_at', 'payment_status', 'items','total_order_price', 'address']
 
-    def get_total_order_price(self, order:models.Order):
-        return sum(item.quantity * item.unit_price for item in order.items.all())
+    # def get_total_order_price(self, order:models.Order):
+    #     return sum(item.quantity * item.unit_price for item in order.items.all())
         
 
 
@@ -290,6 +350,7 @@ class UpdateOrderSerializer(serializers.ModelSerializer):
 
 class CreateOrderSerializer(serializers.Serializer):
     cart_id = serializers.UUIDField()
+    address = AddressSerializer()
 
     def validate_cart_id(self, cart_id):
         # print(cart_id)
@@ -305,10 +366,12 @@ class CreateOrderSerializer(serializers.Serializer):
     def save(self, **kwargs):
         with transaction.atomic():
             cart_id = self.validated_data['cart_id']
-            user_id = self.context['user_id']
-
-            customer = models.Customer.objects.get(user_id = user_id)
-            order = models.Order.objects.create(customer = customer)
+            user = self.context['user']
+            address = self.validated_data['address']
+            
+            customer = models.Customer.objects.get(user_id = user.id)
+            address = models.Address.objects.create(user = user ,**self.validated_data['address'])
+            order = models.Order.objects.create(customer = customer, address = address)
 
             cartItems = models.CartItem.objects.select_related('product').filter(cart_id = cart_id)
 
@@ -317,10 +380,18 @@ class CreateOrderSerializer(serializers.Serializer):
                             order = order,
                             product = item.product,
                             package = item.package,
-                            unit_price = item.product.unit_price if item.product is not None else item.package.unit_price,
+                            unit_price = item.product.unit_price - (item.product.unit_price * (item.product.promotion / 100)) if item.product.promotion is not None else item.product.unit_price if item.product is not None else item.package.unit_price,
                             quantity = item.quantity,
                             ) for item in cartItems ]
-
+            
+            
+            total_order_price = sum(item.quantity * item.unit_price for item in orderItems)
+            if customer.promotion is not None:
+                discount = customer.promotion.discount / 100
+                discount_amount = total_order_price * discount
+                total_order_price -= discount_amount
+                order.objects.update(total_order_price = total_order_price, **order)
+                customer.objects.update(promotion = None)
             # print(orderItems)
             models.OrderItem.objects.bulk_create(orderItems)
             

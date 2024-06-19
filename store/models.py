@@ -34,6 +34,7 @@ class Promotion(models.Model):
     title = models.CharField(max_length=255, null=True, blank=True)
     descriptions = models.CharField(max_length=255)
     discount = models.PositiveIntegerField(default=0, validators=[MinValueValidator(0)])
+    
 
     def __str__(self):
         return self.title
@@ -68,7 +69,7 @@ class Product(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     publisher = models.ForeignKey(Publisher, on_delete=models.PROTECT, related_name='products', blank=True, null=True)
     collection = models.ForeignKey(Collection, on_delete=models.PROTECT, related_name='products')
-    promotions = models.ManyToManyField(Promotion,  blank=True,related_name='products',)
+    promotion = models.ForeignKey(Promotion, on_delete = models.SET_NULL, blank = True, null = True, related_name='promotion',)
     auther = models.ForeignKey(Author, on_delete=models.PROTECT, related_name='products')
 
     def __str__(self):
@@ -119,12 +120,28 @@ class PackageItem(models.Model):
 
     unique_together = [['product']]
     
+
+# Location
+class Address(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='address')
+    capital = models.CharField(max_length=255, default='baghdad')
+    # city = models.ForeignKey('cities_light.City', on_delete=models.SET_NULL, null= True, blank= True)
+    city = models.CharField(max_length=255)
+    street = models.CharField(max_length=255)
+    # zip = models.CharField(max_length=255)
+    more_info = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.capital}'
+        
     
 class Customer(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone = models.CharField(max_length=255)
     birth_date = models.DateField(null=True)
-
+    address = models.ForeignKey(Address, on_delete = models.SET_NULL, null = True, blank = True, related_name= 'location')
+    promotion = models.ForeignKey(Promotion, on_delete=models.SET_NULL, null=True, blank=True, related_name= 'discounts')
+    
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}'
     
@@ -139,17 +156,7 @@ class Customer(models.Model):
     class Meta:
         ordering = ['user__first_name', 'user__last_name']
 
-# Location
-class Address(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='address')
-    # governate = models.CharField(max_length=255, null = True, blank = True)
-    city = models.ForeignKey('cities_light.City', on_delete=models.SET_NULL, null= True, blank= True)
-    # street = models.CharField(max_length=255)
-    # zip = models.CharField(max_length=255)
-    more_info = models.TextField(null=True, blank=True)
 
-    def __str__(self) -> str:
-        return f'{self.city}'
 
 # Orders
 
@@ -168,7 +175,7 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=1, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
     address = models.ForeignKey(Address, on_delete = models.PROTECT, related_name='address', null= True, blank=True) # that shouldnt be null 
-    
+    total_order_price = models.DecimalField(max_digits=6, decimal_places=2, default = 0.0)
     
     class Meta:
         permissions = [('cancel_order', 'Can cancel order')]
@@ -187,7 +194,7 @@ class OrderItem(models.Model):
 class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     # user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    customer = models.OneToOneField(Customer, on_delete=models.PROTECT, null= True, blank=True, related_name='cart')
+    customer = models.OneToOneField(Customer, on_delete = models.PROTECT, null= True, blank=True, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
