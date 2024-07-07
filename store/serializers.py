@@ -3,11 +3,41 @@ from django.db import transaction
 from rest_framework import serializers
 from . import models
 
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = models.ProductImage
+        fields = ['image']
+
+    def create(self, validated_data):
+        product_id = self.context['product_id']
+        return models.ProductImage.objects.create(product_id = product_id, **validated_data)
+    
+    
 class SimpleProductSerializer(serializers.ModelSerializer):
+    discount = serializers.SerializerMethodField()
+    images = ProductImageSerializer(many = True, read_only = True)
+    # image = serializers.SerializerMethodField()
     class Meta:
         model = models.Product
-        fields = ['id','title','unit_price']
+        fields = ['id','title', 'unit_price', 'discount', 'images']
+        
+    def get_discount(self, product:models.Product):
+        if product.promotion is not None:
+           return product.unit_price * Decimal(product.promotion.discount / 100)
+        return 0
 
+    # def get_image(self, product:models.Product):
+    #     # print(product.images)
+    #     try:
+    #         images = product.images.values()[0]
+    #         return (images['image'])
+            
+    #     except :
+    #         # if images == []:
+    #             print('list out of range')
+            # print(images)
 
 class authorSerializers(serializers.ModelSerializer):
     products = SimpleProductSerializer(many =True)
@@ -26,17 +56,6 @@ class CollectionSerializer(serializers.ModelSerializer):
         model = models.Collection
         fields = ['id','title', 'products_count']
 
-    
-
-class ProductImageSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = models.ProductImage
-        fields = ['id', 'image']
-
-    def create(self, validated_data):
-        product_id = self.context['product_id']
-        return models.ProductImage.objects.create(product_id = product_id, **validated_data)
 
 
 class PublisherSerializer(serializers.ModelSerializer):
@@ -83,10 +102,10 @@ class ProductAdverSerializer(serializers.ModelSerializer):
 # package
         
 class PackageItemSerializer(serializers.ModelSerializer):
-    product = SimpleProductSerializer()
+    # product = SimpleProductSerializer()
     class Meta:
         model = models.PackageItem
-        fields = ['id', 'package', 'product', 'quantity']
+        fields = ['id', 'product', 'quantity']
         
         
 class PackageSerializer(serializers.ModelSerializer):
@@ -136,15 +155,19 @@ class UpdatePackageItemSerializer(serializers.ModelSerializer):
         model = models.PackageItem
         fields = ['quantity']
     
-    
+
+class SimplePackageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Package
+        fields = ['id', 'title', 'unit_price', 'image']
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()
     total_price = serializers.SerializerMethodField()
-
+    package = SimplePackageSerializer()
     class Meta:
         model = models.CartItem
-        fields = ['id','product','package_id','quantity','total_price']
+        fields = ['id','product','package','quantity','total_price']
 
     def get_total_price(self, cartItem:models.CartItem):
         item = cartItem.product
@@ -374,24 +397,32 @@ class CreateOrderSerializer(serializers.Serializer):
             order = models.Order.objects.create(customer = customer, address = address)
 
             cartItems = models.CartItem.objects.select_related('product').filter(cart_id = cart_id)
+            # print(cartItems[1].product.promotion is not None)
 
             orderItems = [
                 models.OrderItem(
                             order = order,
                             product = item.product,
                             package = item.package,
-                            unit_price = item.product.unit_price - (item.product.unit_price * (item.product.promotion / 100)) if item.product.promotion is not None else item.product.unit_price if item.product is not None else item.package.unit_price,
+                            unit_price = (item.product.unit_price - item.product.unit_price * (Decimal(item.product.promotion.discount) / 100) if item.product and item.product.promotion  else item.product.unit_price if item.product else item.package.unit_price),
                             quantity = item.quantity,
                             ) for item in cartItems ]
             
-            
             total_order_price = sum(item.quantity * item.unit_price for item in orderItems)
+            
             if customer.promotion is not None:
                 discount = customer.promotion.discount / 100
-                discount_amount = total_order_price * discount
+                discount_amount = total_order_price * Decimal(discount)
                 total_order_price -= discount_amount
-                order.objects.update(total_order_price = total_order_price, **order)
-                customer.objects.update(promotion = None)
+                
+                order.total_order_price = total_order_price
+                order.save()
+                
+                customer.promotion = None
+                customer.save()
+            else:
+                order.total_order_price = total_order_price
+                order.save()
             # print(orderItems)
             models.OrderItem.objects.bulk_create(orderItems)
             

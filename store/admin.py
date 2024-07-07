@@ -1,11 +1,15 @@
 from typing import Any, List, Optional, Tuple
+from django import forms
+from django.shortcuts import redirect
+from django.urls.resolvers import URLPattern
 from django.utils.safestring import mark_safe 
 from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 from django.db.models import Count
 from django.utils.html import format_html, urlencode
-from django.urls import reverse
+from django.urls import path, reverse
+from django.core.validators import MinValueValidator
 
 from . import models
 
@@ -156,9 +160,23 @@ class CollectionAdmin(admin.ModelAdmin):
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return super().get_queryset(request).annotate(products_count = Count('products'))
     
+
+# action for customer and promotion
+# form for promotion 
+
+class PromotionSelectionForm(forms.Form):
+    promotion = forms.ModelChoiceField(queryset=models.Promotion.objects.all(), required=False)
+    title = forms.CharField(max_length=255, required=False)
+    # discount = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
+    discount = forms.IntegerField( validators = [MinValueValidator(0)], required = False)
+    descriptions = forms.CharField(required = False)
+
+
 # 
 @admin.register(models.Customer)
 class CustomerAdmin(admin.ModelAdmin):
+    # action_form = assign_promotion()
+    actions = ['assign_promotion']
     list_display = ['first_name', 'last_name', 'phone', 'birth_date','orders','cart_id', 'discount','address']
     list_per_page = 20
     list_select_related = ['user', 'promotion', 'address']
@@ -191,8 +209,35 @@ class CustomerAdmin(admin.ModelAdmin):
         return super().get_queryset(request).annotate(orders = Count('order'))
     
 
+    @admin.action(description = 'assign promotion')
+    def assign_promotion(self, request, queryset:QuerySet):
+        if 'apply' in request.POST:
+            form = PromotionSelectionForm(request.POST)
+            if form.is_valid():
+                promotion = form.cleaned_data['promotion']
+                title = form.cleaned_data['title']
+                discount = form.cleaned_data['discount']
+                descriptions = form.cleaned_data['descriptions']
+                
+            if not promotion and title and discount and descriptions:
+                promotion = models.Promotion.objects.create(title = title, descriptions = descriptions, discount = discount)
+                queryset.update(promotion = promotion)
+                self.message_user(request, f"Promotion '{promotion}' has been assigned to the selected customers.")
+                return redirect(request.get_full_path())
+        else:
+            form = PromotionSelectionForm()
+    
+    
+    def get_urls(self) -> List[URLPattern]:
+        urls =  super().get_urls()
+        custom_url = [
+            path('assign_promotion/',self.admin_site.admin_view(self.assign_promotion), name = 'assign_promotion' )
+        ]
+        return custom_url + urls
+        
+        
+        
 # package 
-
 class PackageItemInline(admin.TabularInline):
     model = models.PackageItem
     autocomplete_fields = ['product']

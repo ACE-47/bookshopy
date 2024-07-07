@@ -81,7 +81,7 @@ class ProductImageViewSet(ModelViewSet):
     
 
 class ProductAdvertizeViewSet(ModelViewSet):
-    queryset = ProductAdvertize.objects.prefetch_related('product__images').select_related('product__collection').select_related('product__publisher').select_related('product__auther').prefetch_related('product__promotions').all()
+    queryset = ProductAdvertize.objects.prefetch_related('product__images').select_related('product__collection').select_related('product__publisher').select_related('product__auther').prefetch_related('product__promotion').all()
 
     serializer_class = serializers.ProductAdverSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -129,7 +129,7 @@ class CartViewSet(ModelViewSet):
             return Cart.objects.all().prefetch_related('items__product')
         
         customer_id = Customer.objects.only('id').get(user_id = user.id)
-        return Cart.objects.prefetch_related('items__product').filter(customer_id = customer_id)
+        return Cart.objects.prefetch_related('items__product').prefetch_related('items__product__images').select_related('customer').filter(customer_id = customer_id)
     
 
 class CartItemViewSet(ModelViewSet):
@@ -148,7 +148,7 @@ class CartItemViewSet(ModelViewSet):
         return {'cart_id':self.kwargs['cart_pk']}
     
     def get_queryset(self):
-        return CartItem.objects.filter(cart_id = self.kwargs['cart_pk']).select_related('product')
+        return CartItem.objects.filter(cart_id = self.kwargs['cart_pk']).select_related('product').prefetch_related('product__images').select_related('package')
 
 class CustomerViewSet(ModelViewSet):
     queryset = Customer.objects.select_related('address').select_related('promotion').all()
